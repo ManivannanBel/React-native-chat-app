@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from "react";
+import React, { useLayoutEffect, useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,77 +10,71 @@ import {
   ScrollView,
   Keyboard
 } from "react-native";
-import { auth } from "../util/SQLite";
+import { auth } from "../util/firebase";
 import { Ionicons } from "@expo/vector-icons";
 import MessageList from "../components/ChatScreen/MessageList";
-import { v4 as uuidv4 } from "uuid";
+import * as Random from "expo-random";
+import { connect } from "react-redux";
+import {
+  sendMessage,
+  getOldMessages
+} from "../redux/actions/chatScreenActions";
+// import { v4 as uuidv4 } from "uuid";
 
-const ChatScreen = ({ navigation, route }) => {
-  const { userDetail } = route.params;
+/**
+ *
+ * @param {object} param0 - Props
+ * navigation
+ * route -> {userDetails, roomDetails} //from user list item
+ * sendMessage -> action creator
+ *  messagesInCurrentRoom -> from redux store
+ */
+const ChatScreen = ({
+  navigation,
+  route,
+  sendMessage,
+  chats,
+  getOldMessages
+}) => {
+  const { userDetail, roomDetails } = route.params;
 
   const [textInput, setTextInput] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      sender: "manivannan.belfazt@gmail.com",
-      message: "you are receiving this"
-    },
-    {
-      sender: "dummy1@mail.com",
-      message: "I send you"
-    },
-    {
-      sender: "manivannan.belfazt@gmail.com",
-      message: "you are receiving this"
-    },
-    {
-      sender: "dummy1@mail.com",
-      message: "I send you"
-    },
-    {
-      sender: "manivannan.belfazt@gmail.com",
-      message: "you are receiving this"
-    },
-    {
-      sender: "dummy1@mail.com",
-      message: "I send you"
-    },
-    {
-      sender: "dummy1@mail.com",
-      message: "I send you"
-    },
-    ,
-    {
-      sender: "manivannan.belfazt@gmail.com",
-      message:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum numquam blanditiis"
-    },
-    {
-      sender: "dummy1@mail.com",
-      message: "I send you dngndlkn j dfjdb kjfdbk d"
-    },
-    {
-      sender: "dummy1@mail.com",
-      message:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum numquam blanditiis"
-    },
-    {
-      sender: "manivannan.belfazt@gmail.com",
-      message:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum numquam blanditiis"
+  const [messages, setMessages] = useState([]);
+
+  //load old messages from local DB initially
+  useEffect(() => {
+    getOldMessages(auth.currentUser.email, userDetail.email);
+  }, []);
+
+  //update every messages
+  useEffect(() => {
+    let messagesInCurrentRoom = chats[roomDetails.id];
+    console.log(messagesInCurrentRoom);
+
+    if (messagesInCurrentRoom) {
+      setMessages([...messagesInCurrentRoom]);
+    } else {
+      setMessages([]);
     }
-  ]);
+  }, [chats]);
 
   //To send the message
-  const sendMessage = () => {
+  const onSendMessage = () => {
+    if (textInput.trim().length === 0) return;
+
     Keyboard.dismiss();
 
     const newMessage = {
-      id: uuidv4(),
+      id: Random.getRandomBytes(16).toString(),
       sender: auth.currentUser.email,
       receiver: userDetail.email,
-      message: textInput
+      message: textInput,
+      timestamp: Date.now(),
+      groupName: null,
+      isActive: true
     };
-    console.log(newMessage);
+    sendMessage(newMessage, roomDetails.id);
+    setTextInput("");
   };
 
   useLayoutEffect(() => {
@@ -110,7 +104,7 @@ const ChatScreen = ({ navigation, route }) => {
           value={textInput}
           onChangeText={newValue => setTextInput(newValue)}
         />
-        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+        <TouchableOpacity style={styles.sendButton} onPress={onSendMessage}>
           <Ionicons name="send" size={28} color="#fc9803" />
         </TouchableOpacity>
       </View>
@@ -118,7 +112,14 @@ const ChatScreen = ({ navigation, route }) => {
   );
 };
 
-export default ChatScreen;
+const mapStateToProps = state => ({
+  //get only chats from current room id
+  chats: state.chatReducer.chats
+});
+
+export default connect(mapStateToProps, { sendMessage, getOldMessages })(
+  ChatScreen
+);
 
 const styles = StyleSheet.create({
   contianer: {

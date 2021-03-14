@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { sqlite } from "../util/SQLite";
 
-const UserListItem = ({ navigation, userItem }) => {
+const UserListItem = ({ navigation, roomDetails }) => {
   const [userDetail, setUserDetail] = useState(null);
 
   useEffect(() => {
     sqlite.transaction(tx => {
       tx.executeSql(
         "SELECT * FROM users WHERE id=?",
-        [userItem.chatItemId],
+        [roomDetails.chatItemId],
         (_, { rows }) => {
           console.log(rows._array[0]);
           setUserDetail(rows._array[0]);
@@ -23,7 +23,7 @@ const UserListItem = ({ navigation, userItem }) => {
   return (
     <TouchableOpacity
       onPress={() => {
-        navigation.navigate("Chat", { userDetail });
+        navigation.navigate("Chat", { userDetail, roomDetails });
       }}
     >
       <View style={styles.contianer}>

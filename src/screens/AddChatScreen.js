@@ -1,34 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet } from "react-native";
 import { firestore, auth } from "../util/firebase";
-import { insertUser, insertChat } from "../util/SQLite";
+import { executeSql } from "../util/SQLite";
+import { connect } from "react-redux";
+import { addNewChatRoom } from "../redux/actions/homeScreenActions";
 
-const AddChatScreen = () => {
+const AddChatScreen = ({ addNewChatRoom }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const searchUserByEmailId = () => {
-    //console.log(auth.currentUser.email);
+    //console.log(searchQuery.trim() === auth.currentUser.email);
 
-    if (searchQuery.trim === auth.currentUser.email) return;
+    if (searchQuery.trim() === auth.currentUser.email) return;
 
     const userCollection = firestore.collection("Users");
     userCollection
       .where("email", "==", searchQuery.trim())
       .get()
       .then(querySnapshot => {
-        querySnapshot.forEach(document => {
+        querySnapshot.forEach(async document => {
           console.log(document.data());
-
-          const {
-            email,
-            username,
-            photo,
-            isActive,
-            isBlocked
-          } = document.data();
-
-          //insert user detail into sqlite
-          userId = insertUser([email, username, photo, isActive, isBlocked]);
+          //call action creator to store data in DB and update redux store
+          addNewChatRoom(document.data());
         });
       })
       .catch(err => {
@@ -72,4 +65,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default AddChatScreen;
+export default connect(null, { addNewChatRoom })(AddChatScreen);

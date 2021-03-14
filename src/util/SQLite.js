@@ -4,29 +4,24 @@ export const sqlite = SQLite.openDatabase("chat-app.db");
 
 //Create chats table
 export const createChatsTable = () => {
-  sqlite.transaction(tx => {
-    tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS chats (id integer primary key not null, chatItemId integer unique, isGroup boolean, lastUpdated date);"
-    );
-  });
+  executeSql(
+    "CREATE TABLE IF NOT EXISTS chats (id integer primary key not null, chatItemId integer, isGroup boolean, lastUpdated date);"
+  )
+    .then(() => {})
+    .catch((tx, error) => {
+      console.log(error);
+    });
 };
 
-//Insert chat
-export const insertChat = chatDetail => {
-  sqlite.transaction(tx => {
-    try {
-      tx.executeSql(
-        "insert into chats (chatItemId, isGroup, lastUpdated) values(?,?,?)",
-        chatDetail
-      );
-      //   console.log("------------------------------");
-      //   tx.executeSql("select * from chats", [], (_, { rows }) => {
-      //     console.log(JSON.stringify(rows));
-      //   });
-    } catch (err) {
-      console.log(err);
-    }
-  }, null);
+//Create messages table
+export const createMessagesTable = () => {
+  executeSql(
+    "CREATE TABLE IF NOT EXISTS messages (id text primary key not null, message text not null, sender text not null, receiver text not null, groupName text, timestamp timestamp not null, isActive boolean);"
+  )
+    .then(() => {})
+    .catch((tx, error) => {
+      console.log(error);
+    });
 };
 
 //get data from chats table
@@ -36,8 +31,6 @@ export const selectFromChats = () => {
       "select * from chats",
       [],
       (tx, { results }) => {
-        //console.log(results, " ---");
-
         resolve(results);
       },
       error => {
@@ -49,38 +42,13 @@ export const selectFromChats = () => {
 
 //create users table
 export const createUsersTable = () => {
-  sqlite.transaction(tx => {
-    tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS users (id integer primary key not null, email text unique, username text, photo text, isActive boolean, isBlocked boolean);"
-    );
-  });
-};
-
-//insert user
-export const insertUser = userDetail => {
-  sqlite.transaction(tx => {
-    try {
-      tx.executeSql(
-        "insert into users (email, username, photo, isActive, isBlocked) values(?,?,?,?,?)",
-        userDetail
-      );
-      //console.log("+++++++++++++++++++++++++");
-      tx.executeSql(
-        "select * from users where email=?",
-        [userDetail[0]],
-        (_, { rows }) => {
-          //console.log(JSON.stringify(rows));
-
-          const userId = parseInt(rows._array[0].id);
-
-          //inset chat into chats table in sqlite
-          insertChat([userId, false, new Date().toISOString()]);
-        }
-      );
-    } catch (err) {
-      console.log(err);
-    }
-  }, null);
+  executeSql(
+    "CREATE TABLE IF NOT EXISTS users (id integer primary key not null, email text unique, username text, photo text, isActive boolean, isBlocked boolean);"
+  )
+    .then(() => {})
+    .catch((tx, error) => {
+      console.log(error);
+    });
 };
 
 //create groups table
@@ -95,5 +63,35 @@ export const createGroupsTable = () => {
 export const detachDB = () => {
   sqlite.transaction(tx => {
     tx.executeSql("drop table chats");
+  });
+  sqlite.transaction(tx => {
+    tx.executeSql("drop table users");
+  });
+};
+
+export const deleteDB = () => {
+  sqlite.transaction(tx => {
+    tx.executeSql("delete table chats");
+  });
+  sqlite.transaction(tx => {
+    tx.executeSql("delete table users");
+  });
+};
+
+export const executeSql = (sql, params = []) => {
+  return new Promise((resolve, reject) => {
+    sqlite.transaction(tx => {
+      tx.executeSql(
+        sql,
+        params,
+        (tx, results) => {
+          //console.log("db", db);
+          resolve(results);
+        },
+        (tx, error) => {
+          reject(error);
+        }
+      );
+    });
   });
 };

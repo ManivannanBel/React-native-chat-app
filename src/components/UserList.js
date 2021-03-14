@@ -7,9 +7,9 @@ const UserList = ({ navigation, chats }) => {
     <View>
       <FlatList
         data={chats}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
-          <UserListItem userItem={item} navigation={navigation} />
+          <UserListItem roomDetails={item} navigation={navigation} />
         )}
       />
     </View>
