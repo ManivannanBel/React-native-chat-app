@@ -1,8 +1,8 @@
 import React, { useLayoutEffect, useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, Button } from "react-native";
 import { auth } from "../util/firebase";
-import UserListItem from "../components/UserListItem";
-import UserList from "../components/UserList";
+import UserListItem from "../components/HomeScreen/UserListItem";
+import UserList from "../components/HomeScreen/UserList";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { Entypo } from "@expo/vector-icons";
 import Pusher from "pusher-js/react-native";
@@ -98,7 +98,6 @@ const HomeScreen = ({
   };
 
   const clearDB = async () => {
-    //detachDB();
     try {
       await executeSql("DELETE FROM chats");
       await executeSql("DELETE FROM users");

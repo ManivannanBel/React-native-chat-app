@@ -18,7 +18,6 @@ export const addNewUserAndChatRoomToDB = async newChatRoomDetails => {
 
     let res1 = await executeSql("SELECT * FROM users where email=?", [email]);
 
-    //console.log("res1", res1.rows._array[0]);
     const userId = parseInt(res1.rows._array[0].id);
     await executeSql(
       "insert into chats (chatItemId, isGroup, lastUpdated) values(?,?,?)",

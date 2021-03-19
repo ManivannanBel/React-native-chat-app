@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
-import { sqlite } from "../util/SQLite";
+import { executeSql } from "../../util/SQLite";
+import {
+  getUserFromChatRoomId,
+  getLatestMessageForUser
+} from "../../common/chatRoomItemHelper";
+import { auth } from "../../util/firebase";
 
 const UserListItem = ({ navigation, roomDetails }) => {
   const [userDetail, setUserDetail] = useState(null);
+  const [latestMessage, setLatestMessage] = useState("");
 
   useEffect(() => {
-    sqlite.transaction(tx => {
-      tx.executeSql(
-        "SELECT * FROM users WHERE id=?",
-        [roomDetails.chatItemId],
-        (_, { rows }) => {
-          console.log(rows._array[0]);
-          setUserDetail(rows._array[0]);
-        }
-      );
-    });
+    //Load user detail and latest message from DB
+    (async function() {
+      const { user } = await getUserFromChatRoomId(roomDetails.chatItemId);
+      setUserDetail(user);
+      if (user) {
+        const { latestMessage } = await getLatestMessageForUser(
+          user.email,
+          auth.currentUser.email
+        );
+        setLatestMessage(latestMessage);
+      }
+    })();
   }, []);
 
   if (!userDetail) return null;
@@ -36,8 +44,7 @@ const UserListItem = ({ navigation, roomDetails }) => {
         <View style={styles.textWrapper}>
           <Text style={styles.userName}>{userDetail.username}</Text>
           <Text style={styles.lastMessage} numberOfLines={1}>
-            Hello djfdbjd jfbjdb fdbjdfbv Hello djfdbjd jfbjdb fdbjdfbv Hello
-            djfdbjd jfbjdb fdbjdfbv
+            {latestMessage}
           </Text>
         </View>
       </View>

@@ -23,7 +23,7 @@ export default (state = initialState, actions) => {
     case GET_CHAT_HEADS:
       return {
         ...state,
-        chatHeads: getChatHeadsHelper(actions.payload)
+        chatHeads: getChatRoomsHelper(actions.payload)
       };
     case ADD_NEW_CHAT_ROOM:
       return {
@@ -51,7 +51,7 @@ export default (state = initialState, actions) => {
 };
 
 //To initial load chat heads/ rooms from DB
-const getChatHeadsHelper = payload => {
+const getChatRoomsHelper = payload => {
   const newChatHeads = payload.reduce(
     (acc, chatHead) => ((acc[chatHead.id] = chatHead), acc),
     {}
