@@ -2,32 +2,42 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet } from "react-native";
 import { firestore, auth } from "../util/firebase";
 import { executeSql } from "../util/SQLite";
+import { searchUserFromFirestore } from "../common/firebaseHelper";
 import { connect } from "react-redux";
 import { addNewChatRoom } from "../redux/actions/homeScreenActions";
 
 const AddChatScreen = ({ addNewChatRoom }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const searchUserByEmailId = () => {
+  const searchUserByEmailId = async () => {
     //console.log(searchQuery.trim() === auth.currentUser.email);
 
     if (searchQuery.trim() === auth.currentUser.email) return;
 
-    const userCollection = firestore.collection("Users");
-    userCollection
-      .where("email", "==", searchQuery.trim())
-      .get()
-      .then(querySnapshot => {
-        querySnapshot.forEach(async document => {
-          console.log(document.data());
-          //call action creator to store data in DB and update redux store
-          addNewChatRoom(document.data());
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        alert(err.message);
+    try {
+      //search and get user details from firestore
+      const { querySnapshot } = await searchUserFromFirestore(searchQuery);
+      querySnapshot.forEach(document => {
+        //add the fetched user detail to local DB and create a chat room
+        addNewChatRoom(document.data());
       });
+    } catch (err) {
+      console.log(err);
+    }
+    // userCollection
+    //   .where("email", "==", searchQuery.trim())
+    //   .get()
+    //   .then(querySnapshot => {
+    //     querySnapshot.forEach(async document => {
+    //       console.log(document.data());
+    //       //call action creator to store data in DB and update redux store
+    //       addNewChatRoom(document.data());
+    //     });
+    //   })
+    //   .catch(err => {
+    //     console.log(err);
+    //     alert(err.message);
+    //   });
   };
 
   return (

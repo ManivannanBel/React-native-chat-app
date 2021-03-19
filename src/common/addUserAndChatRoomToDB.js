@@ -32,9 +32,13 @@ export const addNewUserAndChatRoomToDB = async newChatRoomDetails => {
 
     return {
       userId,
-      chatRoomId: newChatRoomResult.rows._array[0].id
+      chatRoomId: newChatRoomResult.rows._array[0].id,
+      error: undefined
     };
   } catch (error) {
     console.log(error);
+    return {
+      error: "DB error"
+    };
   }
 };

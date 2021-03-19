@@ -60,23 +60,23 @@ export const createGroupsTable = () => {
   });
 };
 
-export const detachDB = () => {
-  sqlite.transaction(tx => {
-    tx.executeSql("drop table chats");
-  });
-  sqlite.transaction(tx => {
-    tx.executeSql("drop table users");
-  });
-};
+// export const detachDB = () => {
+//   sqlite.transaction(tx => {
+//     tx.executeSql("drop table chats");
+//   });
+//   sqlite.transaction(tx => {
+//     tx.executeSql("drop table users");
+//   });
+// };
 
-export const deleteDB = () => {
-  sqlite.transaction(tx => {
-    tx.executeSql("delete table chats");
-  });
-  sqlite.transaction(tx => {
-    tx.executeSql("delete table users");
-  });
-};
+// export const deleteDB = () => {
+//   sqlite.transaction(tx => {
+//     tx.executeSql("delete table chats");
+//   });
+//   sqlite.transaction(tx => {
+//     tx.executeSql("delete table users");
+//   });
+// };
 
 export const executeSql = (sql, params = []) => {
   return new Promise((resolve, reject) => {

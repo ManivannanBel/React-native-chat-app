@@ -20,7 +20,13 @@ export const getChatHeadsFromDB = () => async dispatch => {
 
 export const addNewChatRoom = newChatRoomDetails => async dispatch => {
   try {
-    const { userId } = await addNewUserAndChatRoomToDB(newChatRoomDetails);
+    const { userId, error } = await addNewUserAndChatRoomToDB(
+      newChatRoomDetails
+    );
+
+    if (error) {
+      return;
+    }
 
     const newChatRoomResult = await executeSql(
       "SELECT * FROM chats WHERE chatItemId=?",
